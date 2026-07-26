@@ -40,9 +40,7 @@ DESTDIR="$prefix_dir" ninja -C $build install
 # this isn't "-lstdc++" due to a meson bug: https://github.com/mesonbuild/meson/issues/11300
 ${SED:-sed} '/^Libs:/ s|$| -lc++|' "$prefix_dir"/lib/pkgconfig/libplacebo.pc -i
 
-# meson, DESTDIR (/usr/local/lib/pkgconfig) altına kurar; kimi pkg-config
-# sürümleri PKG_CONFIG_LIBDIR varken varsayılan arama yolunu kullanmaz.
-# FFmpeg/mpy yapılandırmasının gördüğü sonucu burada doğrula ki zincirin
-# hangi halkası eksikse pkg-config'in kendi mesajıyla logda görünsün.
-cp "$prefix_dir"/usr/local/lib/pkgconfig/libplacebo.pc "$prefix_dir"/lib/pkgconfig/
+# Teşhis: pc içeriği ve FFmpeg-stili require sonucu logda görünsün.
+# (usr -> . sembolik bağı sayesinde usr/local/lib/pkgconfig zaten ana dizin.)
+cat "$prefix_dir"/lib/pkgconfig/libplacebo.pc >&2
 pkg-config --exists --print-errors "libplacebo >= 4.192.0"
