@@ -18,11 +18,14 @@ unset CC CXX # meson wants these unset
 
 # vulkan: links against the libvulkan.so stub from the NDK sysroot via the
 # vulkan.pc installed by scripts/vulkan-headers.sh (vk-proc-addr)
+# vk-proc-addr kapalı: libplacebo, libvulkan.so'u çalışma zamanında dlopen
+# eder (API 21 hedefinde link-bağımlılığı olmaz).
 # shaderc: NDK-built libshaderc_combined.a via the shaderc.pc installed by
 # scripts/shaderc.sh; glslang is not needed
 # dovi: built-in Dolby Vision reshaping support (no external dependency)
 meson setup $build --cross-file "$prefix_dir"/crossfile.txt \
 	-Dvulkan=enabled \
+	-Dvk-proc-addr=disabled \
 	-Dopengl=enabled \
 	-Dshaderc=enabled \
 	-Ddovi=enabled \
