@@ -18,6 +18,14 @@ v_mpv=78d43740f52db817d98bcf24fb30a76ab6fa13ff
 v_libogg=1.3.5
 v_libvorbis=1.3.7
 v_libvpx=1.13
+v_vulkan_headers=vulkan-sdk-1.3.290.0
+v_libplacebo=6.338.2
+
+if [ -n "${DV+x}" ]; then
+	# Dolby Vision variant: vf_libplacebo needs FFmpeg >= 7.1 for proper
+	# DoVi RPU reshaping. Keep the other variants on the known-good FFmpeg.
+	v_ffmpeg=7.1
+fi
 
 
 ## Dependency tree
@@ -28,6 +36,8 @@ dep_dav1d=()
 dep_libvorbis=(libogg)
 if [ -n "${ENCODERS_GPL+x}" ]; then
 	dep_ffmpeg=(mbedtls dav1d libxml2 libvorbis libvpx libx264)
+elif [ -n "${DV+x}" ]; then
+	dep_ffmpeg=(mbedtls dav1d libxml2 libplacebo)
 else
 	dep_ffmpeg=(mbedtls dav1d libxml2)
 fi
@@ -37,6 +47,11 @@ dep_harfbuzz=()
 dep_libass=(freetype fribidi harfbuzz)
 dep_lua=()
 dep_shaderc=()
+dep_vulkan_headers=()
+dep_libplacebo=(vulkan-headers shaderc)
+# note: the dv variant pulls libplacebo in through dep_ffmpeg, so it is
+# already built by the time mpv is compiled (build() has no visited-set,
+# listing it here as well would build it twice)
 if [ -n "${ENCODERS_GPL+x}" ]; then
 	dep_mpv=(ffmpeg libass fftools_ffi)
 else

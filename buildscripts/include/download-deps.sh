@@ -49,6 +49,14 @@ Shaderc sources are provided by the NDK.
 see <ndk>/sources/third_party/shaderc
 HEREDOC
 
+# vulkan-headers
+[ ! -d vulkan-headers ] && git clone --depth 1 --branch $v_vulkan_headers https://github.com/KhronosGroup/Vulkan-Headers.git vulkan-headers
+
+# libplacebo
+# note: submodules (fast_float, glad, jinja, markupsafe, Vulkan-Headers) are
+# required for the build; meson runs with wrap_mode=nodownload
+[ ! -d libplacebo ] && git clone --depth 1 --recursive --shallow-submodules --branch v$v_libplacebo https://github.com/haasn/libplacebo.git libplacebo
+
 # mpv
 [ ! -d mpv ] && git clone https://github.com/mpv-player/mpv.git mpv && cd mpv && git reset --hard 78d43740f52db817d98bcf24fb30a76ab6fa13ff && cd ..
 

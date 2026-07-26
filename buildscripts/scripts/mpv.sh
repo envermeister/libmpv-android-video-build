@@ -16,6 +16,14 @@ fi
 
 unset CC CXX # meson wants these unset
 
+# the dv variant builds libplacebo (+ vulkan) into mpv; the other variants
+# must stay free of them
+if [ -n "${DV+x}" ]; then
+	vulkan_libplacebo="-Dvulkan=enabled -Dlibplacebo=enabled"
+else
+	vulkan_libplacebo="-Dvulkan=disabled -Dlibplacebo=disabled"
+fi
+
 meson setup $build --cross-file "$prefix_dir"/crossfile.txt \
 	--prefer-static \
 	--default-library shared \
@@ -24,8 +32,7 @@ meson setup $build --cross-file "$prefix_dir"/crossfile.txt \
  	-Dlua=disabled \
  	-Dcplayer=false \
 	-Diconv=disabled \
-	-Dvulkan=disabled \
-   	-Dlibplacebo=disabled \
+	$vulkan_libplacebo \
  	-Dmanpage-build=disabled
 
 ninja -C $build -j$cores
