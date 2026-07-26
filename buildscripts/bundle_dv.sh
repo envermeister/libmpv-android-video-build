@@ -9,6 +9,7 @@ if [ -d "prefix" ]; then
 fi
 
 export DV=1
+export APILVL=26
 
 ./download.sh
 ./patch-dv.sh
