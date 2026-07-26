@@ -124,6 +124,7 @@ cpuflags=
 	--enable-encoder=jpegls \
 	\
 	--enable-network \
+	|| { echo "=== ffbuild/config.log (son 80 satır) ===" >&2; tail -80 ffbuild/config.log >&2; exit 1; }
 
 make -j$cores
 make DESTDIR="$prefix_dir" install
