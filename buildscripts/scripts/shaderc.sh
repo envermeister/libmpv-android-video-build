@@ -44,10 +44,14 @@ END
 
 # libplacebo's meson looks for a pkg-config module named 'shaderc'
 # (version >= 2019.1); provide one backed by the same combined static library
-cat >"$prefix_dir"/lib/pkgconfig/shaderc.pc <<"END"
+cat >"$prefix_dir"/lib/pkgconfig/shaderc.pc <<END
+prefix=/usr/local
+includedir=\${prefix}/include
+libdir=\${prefix}/lib
+
 Name: shaderc
 Description:
 Version: 2022.1
-Libs: -L/usr/lib -lshaderc_combined -lc++
-Cflags: -I/usr/include
+Libs: -L\${libdir} -lshaderc_combined -lc++
+Cflags: -I\${includedir}
 END

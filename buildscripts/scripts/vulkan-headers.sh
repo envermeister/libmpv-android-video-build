@@ -27,9 +27,13 @@ cp -r include/vk_video "$prefix_dir/include"
 # -lvulkan resolves against the libvulkan.so stub in the NDK sysroot.
 mkdir -p "$prefix_dir"/lib/pkgconfig
 cat >"$prefix_dir"/lib/pkgconfig/vulkan.pc <<END
+prefix=/usr/local
+includedir=\${prefix}/include
+libdir=\${prefix}/lib
+
 Name: Vulkan-Headers
 Description: Vulkan header files and API registry
 Version: ${v_vulkan_headers#vulkan-sdk-}
-Libs: -L/usr/lib -lvulkan
-Cflags: -I/usr/include
+Libs: -L\${libdir} -lvulkan
+Cflags: -I\${includedir}
 END
