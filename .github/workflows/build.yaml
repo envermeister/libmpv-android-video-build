@@ -44,11 +44,13 @@ jobs:
         run: |
           sudo chmod +x bundle_full.sh
           ./bundle_full.sh
-      - name: Bundle (encoders-gpl)
-        working-directory: ./buildscripts
-        run: |
-          sudo chmod +x bundle_encoders-gpl.sh
-          ./bundle_encoders-gpl.sh
+      # encoders-gpl, zanzibarr'ın ihtiyacı yok (uygulama yalnız dv varyantını
+      # kullanıyor); fftools_ffi'nin FFmpeg 7.1 uyumu ayrıca değerlendirilecek.
+      # - name: Bundle (encoders-gpl)
+      #   working-directory: ./buildscripts
+      #   run: |
+      #     sudo chmod +x bundle_encoders-gpl.sh
+      #     ./bundle_encoders-gpl.sh
       - name: Bundle (dv)
         working-directory: ./buildscripts
         run: |
