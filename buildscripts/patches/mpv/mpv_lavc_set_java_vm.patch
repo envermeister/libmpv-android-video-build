@@ -1,12 +1,9 @@
-diff --git a/include/mpv/client.h b/include/mpv/client.h
-index 0000000..1111111 100644
 --- a/include/mpv/client.h
 +++ b/include/mpv/client.h
-@@ -1731,6 +1731,15 @@ MPV_EXPORT mpv_event *mpv_wait_event(mpv_handle *ctx, double timeout);
-  */
+@@ -1731,6 +1731,15 @@
  MPV_EXPORT void mpv_wakeup(mpv_handle *ctx);
  
-+/**
+ /**
 + * Calls av_jni_set_java_vm() with the given JavaVM*.
 + * https://github.com/FFmpeg/FFmpeg/blob/0ba719f726632d73592311615087a0d64aa2fb60/libavcodec/jni.h#L26-L36
 + *
@@ -15,14 +12,13 @@ index 0000000..1111111 100644
 + */
 +MPV_EXPORT int mpv_lavc_set_java_vm(void *vm);
 +
- /**
++/**
   * Set a custom function that should be called when there are new events. Use
   * this if blocking in mpv_wait_event() to wait for new events is not feasible.
-diff --git a/player/client.c b/player/client.c
-index 0000000..2222222 100644
+  *
 --- a/player/client.c
 +++ b/player/client.c
-@@ -24,6 +24,8 @@
+@@ -22,6 +22,8 @@
  #include <stdint.h>
  #include <stdlib.h>
  
@@ -31,13 +27,14 @@ index 0000000..2222222 100644
  #include "common/common.h"
  #include "common/global.h"
  #include "common/msg.h"
-@@ -966,6 +968,10 @@ void mpv_wakeup(mpv_handle *ctx)
+@@ -318,6 +320,10 @@
+     mp_mutex_lock(&ctx->lock);
+     ctx->is_weak = true;
      mp_mutex_unlock(&ctx->lock);
- }
- 
-+int mpv_lavc_set_java_vm(void *vm) {
-+    return av_jni_set_java_vm(vm, NULL);
 +}
 +
- // map client API types to internal types
- static const struct m_option type_conv[] = {
++int mpv_lavc_set_java_vm(void *vm) {
++    return av_jni_set_java_vm(vm, NULL);
+ }
+ 
+ const char *mpv_client_name(mpv_handle *ctx)
