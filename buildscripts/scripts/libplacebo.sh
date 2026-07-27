@@ -23,8 +23,16 @@ unset CC CXX # meson wants these unset
 # shaderc: NDK-built libshaderc_combined.a via the shaderc.pc installed by
 # scripts/shaderc.sh; glslang is not needed
 # dovi: built-in Dolby Vision reshaping support (no external dependency)
+# mpv 0.40 her varyantta libplacebo ister; vulkan yalnız dv'de (API 21
+# hedefli varyantlarda vk referansı ve stub gereksinimi doğmasın).
+if [ -n "${DV+x}" ]; then
+	vulkan_opt="-Dvulkan=enabled"
+else
+	vulkan_opt="-Dvulkan=disabled"
+fi
+
 meson setup $build --cross-file "$prefix_dir"/crossfile.txt \
-	-Dvulkan=enabled \
+	$vulkan_opt \
 	-Dvk-proc-addr=disabled \
 	-Dopengl=enabled \
 	-Dshaderc=enabled \

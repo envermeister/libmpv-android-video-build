@@ -36,10 +36,9 @@ dep_dav1d=()
 dep_libvorbis=(libogg)
 if [ -n "${ENCODERS_GPL+x}" ]; then
 	dep_ffmpeg=(mbedtls dav1d libxml2 libvorbis libvpx libx264)
-elif [ -n "${DV+x}" ]; then
-	dep_ffmpeg=(mbedtls dav1d libxml2 libplacebo)
 else
-	dep_ffmpeg=(mbedtls dav1d libxml2)
+	# mpv 0.40 için libplacebo zorunlu; her varyantta ffmpeg'den önce kurulur.
+	dep_ffmpeg=(mbedtls dav1d libxml2 libplacebo)
 fi
 dep_freetype2=()
 dep_fribidi=()

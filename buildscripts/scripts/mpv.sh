@@ -16,12 +16,12 @@ fi
 
 unset CC CXX # meson wants these unset
 
-# the dv variant builds libplacebo (+ vulkan) into mpv; the other variants
-# must stay free of them
+# mpv 0.40'ta libplacebo meson seçeneği kaldırıldı (zorunlu bileşen);
+# yalnız vulkan koşullu. dv varyantı vulkan'ı etkin derler.
 if [ -n "${DV+x}" ]; then
-	vulkan_libplacebo="-Dvulkan=enabled -Dlibplacebo=enabled"
+	vulkan_libplacebo="-Dvulkan=enabled"
 else
-	vulkan_libplacebo="-Dvulkan=disabled -Dlibplacebo=disabled"
+	vulkan_libplacebo="-Dvulkan=disabled"
 fi
 
 meson setup $build --cross-file "$prefix_dir"/crossfile.txt \

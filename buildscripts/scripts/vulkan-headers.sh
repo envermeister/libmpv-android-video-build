@@ -30,6 +30,15 @@ cp -r include/vk_video "$prefix_dir/include"
 # sysroot'taki stub'a linklenir; DT_NEEDED=libvulkan.so olarak işaretlenir
 # (2016+ tüm cihazlarda mevcut).
 mkdir -p "$prefix_dir"/lib/pkgconfig
+# -lvulkan yalnız dv'de (API 26; stub var). Diğer varyantlarda headers-only:
+# mpv vulkan=disabled derlendiğinden link gerekmiyor ve API 21 sysroot'unda
+# stub yok.
+if [ -n "${DV+x}" ]; then
+	vulkan_libs="-L\${libdir} -lvulkan"
+else
+	vulkan_libs=""
+fi
+
 cat >"$prefix_dir"/lib/pkgconfig/vulkan.pc <<END
 prefix=/usr/local
 includedir=\${prefix}/include
@@ -38,6 +47,6 @@ libdir=\${prefix}/lib
 Name: Vulkan-Headers
 Description: Vulkan header files and API registry
 Version: ${v_vulkan_headers#vulkan-sdk-}
-Libs: -L\${libdir} -lvulkan
+Libs: $vulkan_libs
 Cflags: -I\${includedir}
 END
