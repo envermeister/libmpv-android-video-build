@@ -24,9 +24,11 @@ cp -r include/vk_video "$prefix_dir/include"
 # pkg-config file so that FFmpeg (--enable-vulkan), libplacebo and mpv can
 # find the headers. FFmpeg 7.1 requires vulkan >= 1.3.277, mpv's
 # vulkan-interop requires >= 1.3.238; the NDK sysroot headers are too old.
-# Bilinçli olarak -lvulkan İÇERMEZ: üç tüketici de (FFmpeg, libplacebo,
-# mpv) libvulkan.so'u çalışma zamanında dlopen eder; API 21 hedefinde
-# NDK sysroot'ta vulkan stub'ı yoktur ve -lvulkan link testini kırar.
+# mpv (vo_gpu vulkan context) vk* sembollerine doğrudan referans verir;
+# headers-only pc bu referansları tanımsız bırakır ve cihazda dlopen
+# "cannot locate symbol" ile patlar. dv varyantı API 26 olduğundan NDK
+# sysroot'taki stub'a linklenir; DT_NEEDED=libvulkan.so olarak işaretlenir
+# (2016+ tüm cihazlarda mevcut).
 mkdir -p "$prefix_dir"/lib/pkgconfig
 cat >"$prefix_dir"/lib/pkgconfig/vulkan.pc <<END
 prefix=/usr/local
@@ -36,6 +38,6 @@ libdir=\${prefix}/lib
 Name: Vulkan-Headers
 Description: Vulkan header files and API registry
 Version: ${v_vulkan_headers#vulkan-sdk-}
-Libs:
+Libs: -L\${libdir} -lvulkan
 Cflags: -I\${includedir}
 END
