@@ -18,8 +18,11 @@ unset CC CXX # meson wants these unset
 
 # mpv 0.40'ta libplacebo meson seçeneği kaldırıldı (zorunlu bileşen);
 # yalnız vulkan koşullu. dv varyantı vulkan'ı etkin derler.
+# dv varyantı mpv 0.41 derliyor; ao_aaudio.c API 31 sabiti
+# (AAUDIO_FORMAT_IEC61937) kullanıyor ama dv hedefi API 26 — uygulama zaten
+# yalnız OpenSLES kullandığından aaudio dv'de kapatılır.
 if [ -n "${DV+x}" ]; then
-	vulkan_libplacebo="-Dvulkan=enabled"
+	vulkan_libplacebo="-Dvulkan=enabled -Daaudio=disabled"
 else
 	vulkan_libplacebo="-Dvulkan=disabled"
 fi
