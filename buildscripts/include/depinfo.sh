@@ -22,9 +22,14 @@ v_vulkan_headers=vulkan-sdk-1.3.290.0
 v_libplacebo=6.338.2
 
 if [ -n "${DV+x}" ]; then
-	# Dolby Vision variant: vf_libplacebo needs FFmpeg >= 7.1 for proper
-	# DoVi RPU reshaping. Keep the other variants on the known-good FFmpeg.
-	v_ffmpeg=7.1
+	# Dolby Vision variant: macOS'ta P5 reshape'i doğrulanan yığınla birebir
+	# hizala (paketli Mpv çerçevesi: FFmpeg 8.1.2 + mpv 0.41 + libplacebo 7.x).
+	# Android'de filtrenin çalışma zamanında devre dışı kalmasına yol açan
+	# Vulkan/init sağlamlığı ve dovi düzeltmeleri bu sürümlerde var.
+	# Diğer varyantlar bilinen-iyi sürümlerde kalır.
+	v_ffmpeg=8.1.2
+	v_mpv=v0.41.0
+	v_libplacebo=7.351.0
 fi
 
 
