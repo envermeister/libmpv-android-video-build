@@ -18,22 +18,26 @@ unset CC CXX # meson wants these unset
 
 # vulkan: links against the libvulkan.so stub from the NDK sysroot via the
 # vulkan.pc installed by scripts/vulkan-headers.sh (vk-proc-addr)
-# vk-proc-addr kapalı: libplacebo, libvulkan.so'u çalışma zamanında dlopen
-# eder (API 21 hedefinde link-bağımlılığı olmaz).
+# vk-proc-addr: dv varyantında (API 26) AÇIK — libplacebo vkGetInstanceProcAddr'ı
+# link zamanında çözer. Kapalıyken libplacebo 7.x'in dlopen fallback'i YOKTUR;
+# FFmpeg'in vf_libplacebo'su kendi cihazını get_proc_addr VERMEDEN kurar
+# (pl_vulkan_create params.get_proc_addr=NULL) ve "built without linking"
+# hatasıyla düşer — Android'deki DV reshape hatasının kökü budur. mpv ve
+# FFmpeg zaten -lvulkan linkli olduğundan (dv.2) çalışma zamanı gereksinimi
+# değişmez. API 21 varyantlarında vulkan zaten kapalı; orada seçenek etkisiz.
 # shaderc: NDK-built libshaderc_combined.a via the shaderc.pc installed by
 # scripts/shaderc.sh; glslang is not needed
 # dovi: built-in Dolby Vision reshaping support (no external dependency)
 # mpv 0.40 her varyantta libplacebo ister; vulkan yalnız dv'de (API 21
 # hedefli varyantlarda vk referansı ve stub gereksinimi doğmasın).
 if [ -n "${DV+x}" ]; then
-	vulkan_opt="-Dvulkan=enabled"
+	vulkan_opt="-Dvulkan=enabled -Dvk-proc-addr=enabled"
 else
-	vulkan_opt="-Dvulkan=disabled"
+	vulkan_opt="-Dvulkan=disabled -Dvk-proc-addr=disabled"
 fi
 
 meson setup $build --cross-file "$prefix_dir"/crossfile.txt \
 	$vulkan_opt \
-	-Dvk-proc-addr=disabled \
 	-Dopengl=enabled \
 	-Dshaderc=enabled \
 	-Ddovi=enabled \
