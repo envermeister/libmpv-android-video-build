@@ -11,6 +11,10 @@ on:
         description: 'Log level'
         required: true
         default: 'warning'
+      dv_release:
+        description: 'Publish only the dv variant as this release tag (e.g. v1.1.7-dv.6); empty builds every variant into the vnext draft'
+        required: false
+        default: ''
 
 permissions:
   contents: write
@@ -35,11 +39,13 @@ jobs:
           mkdir sdk
           ln -s ${ANDROID_HOME} ./sdk/android-sdk-linux
       - name: Bundle (default)
+        if: inputs.dv_release == ''
         working-directory: ./buildscripts
         run: |
           sudo chmod +x bundle_default.sh
           ./bundle_default.sh
       - name: Bundle (full)
+        if: inputs.dv_release == ''
         working-directory: ./buildscripts
         run: |
           sudo chmod +x bundle_full.sh
@@ -65,7 +71,7 @@ jobs:
             ./buildscripts/artifacts/**
       - name: Upload Release
         uses: softprops/action-gh-release@v1
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' && inputs.dv_release == ''
         with:
           draft: true
           prerelease: false
@@ -73,3 +79,15 @@ jobs:
           files: |
             buildscripts/*.zip
             buildscripts/artifacts/**
+      # usetopia: vendor/media_kit_libs_android_video downloads
+      # releases/download/<tag>/dv-<abi>.jar.
+      - name: Upload DV release
+        uses: softprops/action-gh-release@v1
+        if: inputs.dv_release != ''
+        with:
+          draft: false
+          prerelease: false
+          tag_name: ${{ inputs.dv_release }}
+          name: ${{ inputs.dv_release }}
+          target_commitish: ${{ github.sha }}
+          files: buildscripts/artifacts/dv/*.jar

@@ -1,0 +1,125 @@
+diff --git a/libavcodec/mediacodecdec.c b/libavcodec/mediacodecdec.c
+index ea9362b..6134bee 100644
+--- a/libavcodec/mediacodecdec.c
++++ b/libavcodec/mediacodecdec.c
+@@ -27,6 +27,7 @@
+ 
+ #include "libavutil/avassert.h"
+ #include "libavutil/common.h"
++#include "libavutil/dovi_meta.h"
+ #include "libavutil/mem.h"
+ #include "libavutil/opt.h"
+ #include "libavutil/intreadwrite.h"
+@@ -59,6 +60,8 @@ typedef struct MediaCodecH264DecContext {
+     int use_ndk_codec;
+     // Ref. MediaFormat KEY_OPERATING_RATE
+     int operating_rate;
++
++    int dolby_vision;
+ } MediaCodecH264DecContext;
+ 
+ static av_cold int mediacodec_decode_close(AVCodecContext *avctx)
+@@ -282,6 +285,52 @@ done:
+ 
+     return ret;
+ }
++
++/*
++ * Dolby Vision streams carry their RPU in-band; only a decoder opened as
++ * video/dolby-vision applies it (profile 5 has no HDR10 base layer and shows
++ * wrong colours otherwise). Returns that MIME type, with the profile and
++ * level set on the format, when the stream has a Dolby Vision configuration
++ * and a decoder declares its profile; video/hevc otherwise.
++ */
++static const char *hevc_dolby_vision_mime(AVCodecContext *avctx, FFAMediaFormat *format)
++{
++    // MediaCodecInfo.CodecProfileLevel, by Dolby Vision profile.
++    static const int profiles[] = {
++        [4] = 0x10,  // DolbyVisionProfileDvheDtr
++        [5] = 0x20,  // DolbyVisionProfileDvheStn
++        [7] = 0x80,  // DolbyVisionProfileDvheDtb
++        [8] = 0x100, // DolbyVisionProfileDvheSt
++    };
++    const AVPacketSideData *sd = ff_get_coded_side_data(avctx, AV_PKT_DATA_DOVI_CONF);
++    const AVDOVIDecoderConfigurationRecord *cfg;
++    char *name;
++    int profile;
++
++    if (!sd || sd->size < sizeof(*cfg))
++        return "video/hevc";
++    cfg = (const AVDOVIDecoderConfigurationRecord *)sd->data;
++    if (!cfg->rpu_present_flag || cfg->dv_profile >= FF_ARRAY_ELEMS(profiles) ||
++        !profiles[cfg->dv_profile])
++        return "video/hevc";
++
++    profile = profiles[cfg->dv_profile];
++    name = ff_AMediaCodecList_getCodecNameByType("video/dolby-vision", profile, 0, avctx);
++    if (!name) {
++        av_log(avctx, AV_LOG_INFO,
++               "No decoder for Dolby Vision profile %d, using video/hevc\n",
++               cfg->dv_profile);
++        return "video/hevc";
++    }
++    av_log(avctx, AV_LOG_INFO, "Dolby Vision profile %d level %d: %s\n",
++           cfg->dv_profile, cfg->dv_level, name);
++    av_free(name);
++
++    ff_AMediaFormat_setInt32(format, "profile", profile);
++    if (cfg->dv_level >= 1 && cfg->dv_level <= 13)
++        ff_AMediaFormat_setInt32(format, "level", 1 << (cfg->dv_level - 1));
++    return "video/dolby-vision";
++}
+ #endif
+ 
+ #if CONFIG_MPEG2_MEDIACODEC_DECODER || \
+@@ -351,6 +400,8 @@ static av_cold int mediacodec_decode_init(AVCodecContext *avctx)
+         ret = hevc_set_extradata(avctx, format);
+         if (ret < 0)
+             goto done;
++        if (s->dolby_vision)
++            codec_mime = hevc_dolby_vision_mime(avctx, format);
+         break;
+ #endif
+ #if CONFIG_MPEG2_MEDIACODEC_DECODER
+@@ -453,6 +504,13 @@ static av_cold int mediacodec_decode_init(AVCodecContext *avctx)
+ 
+     if ((ret = ff_mediacodec_dec_init(avctx, s->ctx, codec_mime, format)) < 0) {
+         s->ctx = NULL;
++        if (s->dolby_vision && !strcmp(codec_mime, "video/dolby-vision")) {
++            av_log(avctx, AV_LOG_WARNING,
++                   "Dolby Vision decoder failed, using video/hevc\n");
++            ff_AMediaFormat_delete(format);
++            s->dolby_vision = 0;
++            return mediacodec_decode_init(avctx);
++        }
+         goto done;
+     }
+ 
+@@ -600,6 +658,8 @@ static const AVOption ff_mediacodec_vdec_options[] = {
+                    OFFSET(use_ndk_codec), AV_OPT_TYPE_BOOL, {.i64 = -1}, -1, 1, VD },
+     { "operating_rate", "The desired operating rate that the codec will need to operate at, zero for unspecified",
+             OFFSET(operating_rate), AV_OPT_TYPE_INT, {.i64 = 0}, 0, INT_MAX, VD },
++    { "dolby_vision", "Open a video/dolby-vision decoder for Dolby Vision HEVC streams when the device has one",
++            OFFSET(dolby_vision), AV_OPT_TYPE_BOOL, {.i64 = 0}, 0, 1, VD },
+     { NULL }
+ };
+ 
+diff --git a/libavcodec/mediacodecdec_common.c b/libavcodec/mediacodecdec_common.c
+index 9b91c8e..271d0cc 100644
+--- a/libavcodec/mediacodecdec_common.c
++++ b/libavcodec/mediacodecdec_common.c
+@@ -770,7 +770,13 @@ static int mediacodec_dec_get_video_codec(AVCodecContext *avctx, MediaCodecDecCo
+         }
+     }
+ 
+-    profile = ff_AMediaCodecProfile_getProfileFromAVCodecContext(avctx);
++    // A Dolby Vision decoder is chosen by the profile on the format
++    // (mediacodecdec.c), not the HEVC profile.
++    if (!strcmp(mime, "video/dolby-vision")) {
++        if (!ff_AMediaFormat_getInt32(format, "profile", &profile))
++            profile = -1;
++    } else
++        profile = ff_AMediaCodecProfile_getProfileFromAVCodecContext(avctx);
+     if (profile < 0) {
+         av_log(avctx, AV_LOG_WARNING, "Unsupported or unknown profile\n");
+     }
