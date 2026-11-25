@@ -42,6 +42,10 @@ mkdir -p deps && cd deps
 # libass
 [ ! -d libass ] && git clone --depth 1 --branch $v_libass https://github.com/libass/libass.git libass
 
+# fontconfig (Android system-font discovery requires 2.16+; pin the
+# upstream-proven libxml2 backend release).
+[ ! -d fontconfig ] && git clone --depth 1 --branch $v_fontconfig https://gitlab.freedesktop.org/fontconfig/fontconfig.git fontconfig
+
 # shaderc
 mkdir -p shaderc
 cat >shaderc/README <<'HEREDOC'

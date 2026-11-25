@@ -1,5 +1,8 @@
 #!/bin/bash -e
 
+# Package setup must not stop at debconf prompts (tzdata, Java certificates).
+export DEBIAN_FRONTEND=noninteractive
+
 . ./include/depinfo.sh
 
 . ./include/path.sh # load $os var
@@ -10,14 +13,14 @@
 if [ "$os" == "linux" ]; then
 	if [ $TRAVIS -eq 0 ]; then
 		hash yum &>/dev/null && {
-			sudo yum install autoconf pkgconfig libtool ninja-build unzip \
-			python3-pip python3-setuptools unzip wget;
-			sudo pip3 install meson; }
+			sudo yum install autoconf pkgconfig libtool ninja-build unzip gperf \
+			python3-pip python3-setuptools python3-jsonschema python3-jinja2 unzip wget;
+			sudo pip3 install --upgrade 'meson>=1.6.1'; }
 		apt-get -v &>/dev/null && {
 		    sudo apt-get update;
-			sudo apt-get install -y autoconf pkg-config libtool ninja-build nasm unzip \
-			python3-pip python3-setuptools unzip;
-			sudo pip3 install meson; }
+			sudo apt-get install -y autoconf pkg-config libtool ninja-build nasm unzip gperf \
+			python3-pip python3-setuptools python3-jsonschema python3-jinja2 unzip;
+			sudo pip3 install --upgrade 'meson>=1.6.1'; }
 	fi
 
 	if ! javac -version &>/dev/null; then
@@ -38,7 +41,8 @@ elif [ "$os" == "mac" ]; then
 		fi
 		brew install \
 			automake autoconf libtool pkg-config \
-			coreutils gnu-sed wget meson ninja
+			coreutils gnu-sed wget meson ninja gperf
+		python3 -m pip install --upgrade jsonschema jinja2
 	fi
 	if ! javac -version &>/dev/null; then
 		echo "Error: missing Java Development Kit. Install it manually."

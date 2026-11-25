@@ -20,6 +20,7 @@ v_libvorbis=1.3.7
 v_libvpx=1.13
 v_vulkan_headers=vulkan-sdk-1.3.290.0
 v_libplacebo=6.338.2
+v_fontconfig=2.17.1
 
 if [ -n "${DV+x}" ]; then
 	# Dolby Vision variant: macOS'ta P5 reshape'i doğrulanan yığınla birebir
@@ -45,10 +46,12 @@ else
 	# mpv 0.40 için libplacebo zorunlu; her varyantta ffmpeg'den önce kurulur.
 	dep_ffmpeg=(mbedtls dav1d libxml2 libplacebo)
 fi
-dep_freetype2=()
+dep_freetype=()
+dep_libxml2=()
+dep_fontconfig=(freetype libxml2)
 dep_fribidi=()
 dep_harfbuzz=()
-dep_libass=(freetype fribidi harfbuzz)
+dep_libass=(freetype fontconfig fribidi harfbuzz)
 dep_lua=()
 dep_shaderc=()
 dep_vulkan_headers=()

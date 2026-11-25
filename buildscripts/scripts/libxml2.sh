@@ -25,6 +25,8 @@ cd _build$ndk_suffix
     --with-minimum \
     --with-threads \
     --with-tree \
+    --with-push \
+    --without-iconv \
     --without-lzma \
 
 make -j$cores
